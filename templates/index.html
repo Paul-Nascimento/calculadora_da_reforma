@@ -74,8 +74,9 @@
                     <th>Preço sem impostos</th>
                     <th>CUSTO NESA</th>
                         {% if "CUSTO REGULAR" in resultado %}<td>R$ {{ '%.2f'|format(resultado["CUSTO REGULAR"]) }}</td>{% endif %}
-</tr>
-                    {% if resultados and "CUSTO REGULAR" in resultados[0] %}<th>Comparativo</th>{% endif %}
+                        {% if resultados and "CUSTO REGULAR" in resultados[0] %}<th>Comparativo</th>{% endif %}
+                    </tr>
+                    
 </thead>
             <tbody>
                 {% for resultado in resultados %}
