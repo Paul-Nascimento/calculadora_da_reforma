@@ -14,39 +14,22 @@
             <input type="number" step="0.01" class="form-control" name="valor" required>
         </div>
         <div class="col-md-3">
-            <label class="form-label">Estado de Origem (UF)</label>
-            <select class="form-select" id="uf-input" name="uf" required>
+            <label class="form-label">UF do Tomador</label>
+            <select class="form-select" id="uf-input" name="uf">
                 <option value="">Selecione</option>
-                <option value="AC">AC</option>
-                <option value="AL">AL</option>
-                <option value="AP">AP</option>
-                <option value="AM">AM</option>
-                <option value="BA">BA</option>
-                <option value="CE">CE</option>
-                <option value="DF">DF</option>
-                <option value="ES">ES</option>
-                <option value="GO">GO</option>
-                <option value="MA">MA</option>
-                <option value="MT">MT</option>
-                <option value="MS">MS</option>
-                <option value="MG">MG</option>
-                <option value="PA">PA</option>
-                <option value="PB">PB</option>
-                <option value="PR">PR</option>
-                <option value="PE">PE</option>
-                <option value="PI">PI</option>
-                <option value="RJ">RJ</option>
-                <option value="RN">RN</option>
-                <option value="RS">RS</option>
-                <option value="RO">RO</option>
-                <option value="RR">RR</option>
-                <option value="SC">SC</option>
-                <option value="SP">SP</option>
-                <option value="SE">SE</option>
-                <option value="TO">TO</option>
+                {% for uf in ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'] %}
+                    <option value="{{ uf }}" {% if uf == "PA" %}selected{% endif %}>{{ uf }}</option>
+                {% endfor %}
             </select>
         </div>
-
+        <div class="col-md-3">
+            <label class="form-label">Regime Tributário</label>
+            <select name="regime" class="form-select" required>
+                <option value="">Selecione</option>
+                <option value="simples">Simples Nacional</option>
+                <option value="normal">Regime Normal</option>
+            </select>
+        </div>
         <div class="col-md-3">
             <label class="form-label">Tipo</label>
             <select name="tipo" id="tipo-select" class="form-select" required onchange="atualizarCampoUF()">
@@ -54,54 +37,64 @@
                 <option value="servico">Serviço</option>
             </select>
         </div>
+        
+        <div class="col-md-3 anexo-simples" style="display:none">
+            <label class="form-label">Anexo</label>
+            <select name="anexo" class="form-select">
+                <option value="I">Anexo I</option>
+                <option value="II">Anexo II</option>
+                <option value="III" selected>Anexo III</option>
+                <option value="IV">Anexo IV</option>
+                <option value="V">Anexo V</option>
+            </select>
+        </div>
+        <div class="col-md-3 anexo-simples" style="display:none">
+            <label class="form-label">RBT12</label>
+            <input type="number" step="0.01" name="rbt12" class="form-control" value="400000">
+        </div>
         <div class="col-md-3 d-flex align-items-end">
+
             <button type="submit" class="btn btn-primary w-100">Simular</button>
         </div>
     </form>
 
     {% if resultados %}
-<hr class="my-4">
-<h4>Resultados</h4>
-<div class="table-responsive">
-    <table class="table table-bordered table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>Ano</th>
-                <th>IBS</th>
-                <th>CBS</th>
-                <th>{% if 'ICMS' in resultados[0] %}ICMS{% else %}ISS{% endif %}</th>
-                <th>PIS/COFINS</th>
-                <th>Preço sem impostos</th>
-                {% if 'DIFAL' in resultados[0] %}
-                    <th>DIFAL</th>
-                {% endif %}
-                <th>CUSTO NESA</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for resultado in resultados %}
-            <tr>
-                <td>{{ resultado.ano }}</td>
-                <td>R$ {{ '%.2f'|format(resultado['IBS']) }}</td>
-                <td>R$ {{ '%.2f'|format(resultado['CBS']) }}</td>
-                <td>
-                    R$ {{ '%.2f'|format(
-                        resultado.get('ICMS', resultado.get('ISS', 0.0))
-                    ) }}
-                </td>
-                <td>R$ {{ '%.2f'|format(resultado['PIS_COFINS']) }}</td>
-                <td>R$ {{ '%.2f'|format(resultado['Preço sem impostos']) }}</td>
-                {% if 'DIFAL' in resultado %}
-                    <td>R$ {{ '%.2f'|format(resultado['DIFAL']) }}</td>
-                {% endif %}
-                <td><strong>R$ {{ '%.2f'|format(resultado['CUSTO NESA']) }}</strong></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% endif %}
-
+    <hr class="my-4">
+    <h4>Resultados</h4>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Ano</th>
+                    <th>IBS</th>
+                    <th>CBS</th>
+                    <th>ICMS</th>
+                    <th>ISS</th>
+                    <th>PIS/COFINS</th>
+                    <th>Preço sem impostos</th>
+                    <th>CUSTO NESA</th>
+                        {% if "CUSTO REGULAR" in resultado %}<td>R$ {{ '%.2f'|format(resultado["CUSTO REGULAR"]) }}</td>{% endif %}
+</tr>
+                    {% if resultados and "CUSTO REGULAR" in resultados[0] %}<th>Comparativo</th>{% endif %}
+</thead>
+            <tbody>
+                {% for resultado in resultados %}
+                <tr>
+                    <td>{{ resultado.ano }}</td>
+                    <td>R$ {{ '%.2f'|format(resultado['IBS']) }}</td>
+                    <td>R$ {{ '%.2f'|format(resultado['CBS']) }}</td>
+                    <td>R$ {{ '%.2f'|format(resultado.get('ICMS', 0.0)) }}</td>
+                    <td>R$ {{ '%.2f'|format(resultado.get('ISS', 0.0)) }}</td>
+                    <td>R$ {{ '%.2f'|format(resultado.get('PIS_COFINS', 0.0)) }}</td>
+                    <td>R$ {{ '%.2f'|format(resultado['Preço sem impostos']) }}</td>
+                    <td><strong>R$ {{ '%.2f'|format(resultado['CUSTO NESA']) }}</strong></td>
+                        {% if "CUSTO REGULAR" in resultado %}<td>R$ {{ '%.2f'|format(resultado["CUSTO REGULAR"]) }}</td>{% endif %}
+</tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
 </div>
 
 <script>
@@ -116,6 +109,15 @@ function atualizarCampoUF() {
     }
 }
 window.onload = atualizarCampoUF;
+
+document.querySelector('[name="regime"]').addEventListener("change", function () {
+    const anexoFields = document.querySelectorAll('.anexo-simples');
+    if (this.value === "simples") {
+        anexoFields.forEach(el => el.style.display = "block");
+    } else {
+        anexoFields.forEach(el => el.style.display = "none");
+    }
+});
 </script>
 
 </body>
